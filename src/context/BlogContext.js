@@ -1,31 +1,39 @@
-import React, { useReducer } from 'react';
-
-const BlogContext = React.createContext();
+import createDataContext from './createDataContext';
 
 const blogReducer = (state, action) => {
 	switch (action.type) {
+		case 'delete_blogpost':
+		return state.filter((blogpost) => blogpost.id !== action.payload)
 		case 'add_blogpost': 
-			return [...state, { title: `Blog Post #${state.length + 1}` }];
+			return [
+				...state, 
+				{ 
+					id: Math.floor(Math.random() * 99999), 
+					title: `Blog Post #${state.length + 1}` 
+				}
+			];
 		default:
 			return state;
 	}
 };
 
-export const BlogProvider = ({ children }) => {
-	const [blogPosts, runMyReducer] = useReducer(blogReducer, []);
-
-	const addBlogPost = () => {
+const addBlogPost = runMyReducer => {
+	return () => {
 		runMyReducer({ type: 'add_blogpost' });
 	};
-
-	return (
-		<BlogContext.Provider value={{ data: blogPosts, addBlogPost }}>
-			{children}
-		</BlogContext.Provider>
-	);
 };
 
-export default BlogContext;
+const deleteBlogPost = runMyReducer => {
+	return (id) => {
+		runMyReducer({ type: 'delete_blogpost', payload: id })
+	};
+}
+
+export const { Context, Provider } = createDataContext(
+	blogReducer, 
+	{ addBlogPost, deleteBlogPost }, 
+	[]
+);
 
 //b/c app is wrapped in a custom component (BlogContext.Provider), 
 //children element will be passed down as a prop from app to custom 
